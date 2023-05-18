@@ -1,11 +1,11 @@
-from flask import Flask, request, g
-from flask_restful import Resource, Api, reqparse, abort
+from flask import Flask
+from flask_restful import Resource, Api, reqparse
 import sqlite3
-from sqlite3 import Error
-from werkzeug.local import LocalProxy
+from flask_cors import CORS
 
 app = Flask("flask_api")
 api = Api(app)
+CORS(app)
 
 user_post_args = reqparse.RequestParser()
 user_post_args.add_argument("name", type=str, help="Name is required.", required=True)
@@ -51,11 +51,7 @@ class User(Resource):
         c.execute('''CREATE TABLE IF NOT EXISTS users
             (id INTEGER PRIMARY KEY, name TEXT, lastname TEXT, email TEXT, phone TEXT, password TEXT, gender TEXT)''')
         args = user_post_args.parse_args()
-        c.execute('SELECT * FROM users WHERE id=?', (user_id,))
-        row = c.fetchone()
-        if row:
-            return f"Usuário com id {user_id} já existe."
-        c.execute('INSERT INTO users(id, name, lastname, email, phone, password, gender) VALUES (?, ?, ?, ?, ?, ?, ?)', (user_id, args["name"], args["lastname"], args["email"], args["phone"], args["password"], args["gender"]))
+        c.execute('INSERT INTO users(name, lastname, email, phone, password, gender) VALUES (?, ?, ?, ?, ?, ?)', (args["name"], args["lastname"], args["email"], args["phone"], args["password"], args["gender"]))
         conn.commit()
         user = {"name": args["name"], "lastname": args["lastname"], "email": args["email"], "phone": args["phone"], "password": args["password"], "gender": args["gender"]}
         conn.close()
